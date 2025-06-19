@@ -126,6 +126,9 @@ function sendHeartbeat(filePath) {
   //   logDebug(`忽略草稿文件：${filePath}`);
   //   return;
   // }
+  if (filePath.endsWith('.meta')) {
+    return;
+  }
   if (ignorefiles.includes(path.basename(filePath))) {
     return;
   }
