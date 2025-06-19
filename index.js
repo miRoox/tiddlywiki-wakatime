@@ -73,11 +73,6 @@ watcher
   })
   .on('add', (filePath) => {
     logDebug(`检测到新文件：${filePath}`);
-    if (path.basename(filePath).startsWith('Draft of'))
-    {
-      logDebug(`忽略草稿文件：${filePath}`);
-      return;
-    }
     sendHeartbeat(filePath);
   })
   .on('change', (filePath) => {
@@ -98,6 +93,11 @@ const ignorefiles = [
 
 // 发送心跳到 WakaTime
 function sendHeartbeat(filePath) {
+  if (path.basename(filePath).startsWith('Draft of'))
+  {
+    logDebug(`忽略草稿文件：${filePath}`);
+    return;
+  }
   if (ignorefiles.includes(path.basename(filePath))) {
     return;
   }
