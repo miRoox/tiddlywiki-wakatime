@@ -91,6 +91,34 @@ const ignorefiles = [
   '$__StoryList.json', // 忽略 StoryList JSON 文件
 ]
 
+function getProjectName() {
+  // Read the wiki title from $:/SiteTitle tiddler
+  let wikiTitle = "MyWiki"; // Default fallback title
+  
+  try {
+    const siteTitlePath = path.join(wikiDir, '$__SiteTitle.tid');
+    
+    if (fs.existsSync(siteTitlePath)) {
+      const content = fs.readFileSync(siteTitlePath, 'utf8');
+      // TiddlyWiki .tid files have metadata followed by a blank line and then content
+      const contentMatch = content.match(/\n\n(.+)$/s);
+      if (contentMatch && contentMatch[1]) {
+        wikiTitle = contentMatch[1].trim();
+        logDebug(`Found wiki title: ${wikiTitle}`);
+      } else {
+        logDebug('Could not extract wiki title from SiteTitle tiddler, using default: MyWiki');
+      }
+    } else {
+      logDebug('SiteTitle tiddler not found, using default: MyWiki');
+    }
+  } catch (error) {
+    logDebug(`Error reading wiki title: ${error.message}`);
+  }
+  return wikiTitle
+}
+
+const wikiTitle = getProjectName(); // 获取 TiddlyWiki 的标题
+
 // 发送心跳到 WakaTime
 function sendHeartbeat(filePath) {
   if (path.basename(filePath).startsWith('Draft of'))
@@ -101,7 +129,8 @@ function sendHeartbeat(filePath) {
   if (ignorefiles.includes(path.basename(filePath))) {
     return;
   }
-  const command = `"${wakatimeCliPath}" --plugin tiddlywiki-wakatime --entity "${filePath}" --entity-type file --category "writing docs" --alternate-language "Tiddlywiki" --alternate-project "MyWiki"`;
+  
+  const command = `"${wakatimeCliPath}" --plugin tiddlywiki-wakatime --entity "${filePath}" --entity-type file --category "writing docs" --alternate-language "Tiddlywiki" --alternate-project "${wikiTitle}"`;
 
   logDebug(`执行 wakatime-cli 命令：${command}`);
   exec(command, (error, stdout, stderr) => {
