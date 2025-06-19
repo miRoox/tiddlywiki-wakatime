@@ -121,11 +121,11 @@ const wikiTitle = getProjectName(); // 获取 TiddlyWiki 的标题
 
 // 发送心跳到 WakaTime
 function sendHeartbeat(filePath) {
-  if (path.basename(filePath).startsWith('Draft of'))
-  {
-    logDebug(`忽略草稿文件：${filePath}`);
-    return;
-  }
+  // if (path.basename(filePath).startsWith('Draft of'))
+  // {
+  //   logDebug(`忽略草稿文件：${filePath}`);
+  //   return;
+  // }
   if (ignorefiles.includes(path.basename(filePath))) {
     return;
   }
