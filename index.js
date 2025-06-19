@@ -73,6 +73,12 @@ watcher
   })
   .on('add', (filePath) => {
     logDebug(`检测到新文件：${filePath}`);
+    if (path.basename(filePath).startsWith('Draft of'))
+    {
+      logDebug(`忽略草稿文件：${filePath}`);
+      return;
+    }
+    sendHeartbeat(filePath);
   })
   .on('change', (filePath) => {
     logDebug(`检测到文件修改：${filePath}`);
@@ -85,8 +91,16 @@ watcher
     logDebug(`chokidar 错误：${error.message}`);
   });
 
+const ignorefiles = [
+  '$__StoryList.tid', // 忽略 StoryList 文件
+  '$__StoryList.json', // 忽略 StoryList JSON 文件
+]
+
 // 发送心跳到 WakaTime
 function sendHeartbeat(filePath) {
+  if (ignorefiles.includes(path.basename(filePath))) {
+    return;
+  }
   const command = `"${wakatimeCliPath}" --plugin tiddlywiki-wakatime --entity "${filePath}" --entity-type file --category "writing docs" --alternate-language "Tiddlywiki" --alternate-project "MyWiki"`;
 
   logDebug(`执行 wakatime-cli 命令：${command}`);
