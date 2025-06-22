@@ -1,5 +1,5 @@
 const chokidar = require('chokidar');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -133,19 +133,35 @@ function sendHeartbeat(filePath) {
     return;
   }
   
-  const command = `"${wakatimeCliPath}" --plugin tiddlywiki-wakatime --entity "${filePath}" --entity-type file --category "writing docs" --alternate-language "Tiddlywiki" --alternate-project "${wikiTitle}"`;
-
-  logDebug(`执行 wakatime-cli 命令：${command}`);
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      logDebug(`发送心跳时出错：${error.message}`);
-      return;
+  const args = [
+    '--plugin', 'tiddlywiki-wakatime',
+    '--entity', filePath,
+    '--entity-type', 'file',
+    '--category', 'writing docs',
+    '--alternate-language', 'Tiddlywiki',
+    '--alternate-project', wikiTitle
+  ];
+  
+  logDebug(`执行 wakatime-cli: ${wakatimeCliPath} ${args.join(' ')}`);
+  
+  const wakatimeProcess = spawn(wakatimeCliPath, args);
+  
+  wakatimeProcess.stdout.on('data', (data) => {
+    logDebug(`心跳发送成功：${filePath}, 输出：${data.toString().trim()}`);
+  });
+  
+  wakatimeProcess.stderr.on('data', (data) => {
+    logDebug(`wakatime-cli 错误：${data.toString().trim()}`);
+  });
+  
+  wakatimeProcess.on('error', (error) => {
+    logDebug(`发送心跳时出错：${error.message}`);
+  });
+  
+  wakatimeProcess.on('close', (code) => {
+    if (code !== 0) {
+      logDebug(`wakatime-cli 进程退出，代码：${code}`);
     }
-    if (stderr) {
-      logDebug(`wakatime-cli 错误：${stderr}`);
-      return;
-    }
-    logDebug(`心跳发送成功：${filePath}, 输出：${stdout}`);
   });
 }
 
