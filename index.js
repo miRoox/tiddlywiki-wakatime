@@ -117,7 +117,7 @@ function getProjectName() {
   return wikiTitle
 }
 
-const wikiTitle = getProjectName(); // 获取 TiddlyWiki 的标题
+let wikiTitle = getProjectName(); // 获取 TiddlyWiki 的标题
 
 // 发送心跳到 WakaTime
 function sendHeartbeat(filePath) {
@@ -131,6 +131,11 @@ function sendHeartbeat(filePath) {
   }
   if (ignorefiles.includes(path.basename(filePath))) {
     return;
+  }
+
+  if (filePath.endsWith('$__SiteTitle.tid')) {
+    wikiTitle = getProjectName(); // 更新 wikiTitle
+    logDebug(`更新 wikiTitle: ${wikiTitle}`);
   }
   
   const args = [
